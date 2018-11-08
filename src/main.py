@@ -24,27 +24,28 @@ def load_df(csv_path=path, nrows=None):
 
 c = load_df(path)
 
-def normalizeColumn(data,attributes):
-    attributeMap=dict()
-    count=0
-    for i in sorted(data[attributes].unique(),reverse=True):
-        attributeMap[i]=count
-        count=count+1
-    data[attributes]=data[attributes].map(attributeMap)
+def normalizeColumn(data, attributes):
+    attributeMap = dict()
+    count = 0
+    for i in sorted(data[attributes].unique(), reverse=True):
+        attributeMap[i] = count
+        count = count+1
+    data[attributes] = data[attributes].map(attributeMap)
     return data
 
 # fullVisitorId and sessionId are object type
 
 columnList = ['date', 'fullVisitorId', 'sessionId', 'visitId', 'visitNumber', 'visitStartTime']
-# for column in c:
-#     if column not in columnList:
-#         normalizeColumn(c, column)
 
 for column in c:
     if column not in columnList:
-        c[column] = c[column].astype(str)
+        c[column] = c[column].astype('str')
 
-print(c.dtypes)
+for column in c:
+    if column not in columnList:
+        normalizeColumn(c, column)
+
+print(c)
 
 
 
