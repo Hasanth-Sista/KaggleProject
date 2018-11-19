@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
 import json
-import os
+from sklearn import model_selection,neural_network,metrics
 from pandas.io.json import json_normalize
 
 path = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/train.csv"
 
+testPath = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/test.csv"
 
 def load_df(csv_path=path, nrows=None):
     JSON_COLUMNS = ['device', 'geoNetwork', 'totals', 'trafficSource']
@@ -24,12 +25,14 @@ def load_df(csv_path=path, nrows=None):
 
 c = load_df(path)
 
+attributeMap = dict()
+count = 0
 def normalizeColumn(data, attributes):
-    attributeMap = dict()
-    count = 0
+    global count
     for i in sorted(data[attributes].unique(), reverse=True):
-        attributeMap[i] = count
-        count = count+1
+        if i not in attributeMap:
+            attributeMap[i] = count
+            count = count + 1
     data[attributes] = data[attributes].map(attributeMap)
     return data
 
@@ -45,12 +48,36 @@ for column in c:
     if column not in columnList:
         normalizeColumn(c, column)
 
-print(c)
+# c.to_csv("output.csv", sep='\t', encoding='utf-8')
+
+#  find columns with constant values
+constant_columns = []
+for col in c.columns:
+    if len(c[col].value_counts()) == 1:
+        constant_columns.append(col)
+
+# remove columns with constant values
+# for column in constant_columns:
+#     del c[column]
 
 
+test = load_df(testPath)
+for column in test:
+    if column not in columnList:
+        test[column] = test[column].astype('str')
 
+for column in test:
+    if column not in columnList:
+        normalizeColumn(test, column)
 
+# test.to_csv("output1.csv", sep='\t', encoding='utf-8')
 
+X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, c['totals.transactionRevenue'], test_size=0.20, random_state=0)
+neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
+neural_net.fit(X_train,y_train)
+y_pred = neural_net.predict(X_validation)
+
+print(metrics.accuracy_score(y_validation, y_pred))
 
 
 
