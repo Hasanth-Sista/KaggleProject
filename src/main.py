@@ -6,7 +6,7 @@ from pandas.io.json import json_normalize
 
 path = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/train.csv"
 
-testPath = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/test.csv"
+testPath = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/test100.csv"
 
 def load_df(csv_path=path, nrows=None):
     JSON_COLUMNS = ['device', 'geoNetwork', 'totals', 'trafficSource']
@@ -57,9 +57,20 @@ for col in c.columns:
         constant_columns.append(col)
 
 # remove columns with constant values
-# for column in constant_columns:
-#     del c[column]
+for column in constant_columns:
+    del c[column]
 
+
+
+# test.to_csv("output1.csv", sep='\t', encoding='utf-8')
+y = c['totals.transactionRevenue']
+del c['totals.transactionRevenue']
+X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
+neural_net.fit(X_train,y_train)
+# y_pred = neural_net.predict(X_validation)
+# print(metrics.accuracy_score(y_validation, y_pred))
+#
 
 test = load_df(testPath)
 for column in test:
@@ -70,15 +81,15 @@ for column in test:
     if column not in columnList:
         normalizeColumn(test, column)
 
-# test.to_csv("output1.csv", sep='\t', encoding='utf-8')
+for column in constant_columns:
+    del test[column]
 
-X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, c['totals.transactionRevenue'], test_size=0.20, random_state=0)
-neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
-neural_net.fit(X_train,y_train)
-y_pred = neural_net.predict(X_validation)
+y_test_pred = neural_net.predict(test)
+print(y_test_pred)
+total = y_test_pred.sum()
+print(total)
 
-print(metrics.accuracy_score(y_validation, y_pred))
-
+#  y is predicted revenue per user, y cap is total revenue of all users
 
 
 
