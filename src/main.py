@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 import json
 from sklearn import model_selection,neural_network,metrics
+from sklearn.ensemble import RandomForestClassifier
 from pandas.io.json import json_normalize
 
-path = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/train.csv"
+path = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/train1.csv"
 
-testPath = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/test100.csv"
+testPath = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/test1.csv"
 
 def load_df(csv_path=path, nrows=None):
     JSON_COLUMNS = ['device', 'geoNetwork', 'totals', 'trafficSource']
@@ -24,7 +25,7 @@ def load_df(csv_path=path, nrows=None):
     return df
 
 c = load_df(path)
-
+# print(c.columns)
 attributeMap = dict()
 count = 0
 def normalizeColumn(data, attributes):
@@ -68,11 +69,12 @@ del c['totals.transactionRevenue']
 X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
 neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
 neural_net.fit(X_train,y_train)
-# y_pred = neural_net.predict(X_validation)
-# print(metrics.accuracy_score(y_validation, y_pred))
-#
+y_pred = neural_net.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+
 
 test = load_df(testPath)
+# print(test.columns)
 for column in test:
     if column not in columnList:
         test[column] = test[column].astype('str')
@@ -88,6 +90,44 @@ y_test_pred = neural_net.predict(test)
 print(y_test_pred)
 total = y_test_pred.sum()
 print(total)
+y_input=[]
+for i in y_test_pred:
+    y_input.append(np.log(y_test_pred))
+print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
+random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
+random_forest.fit(X_train,y_train)
+y_pred=random_forest.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+y_test_pred = random_forest.predict(test)
+print(y_test_pred)
+total = y_test_pred.sum()
+print(total)
+y_input=[]
+for i in y_test_pred:
+    y_input.append(np.log(y_test_pred))
+print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+
+
+def rme(y,total):
+    return np.sqrt(((y - total) ** 2).mean())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #  y is predicted revenue per user, y cap is total revenue of all users
 
@@ -133,4 +173,3 @@ print(total)
 # deviceDataFrame = pd.DataFrame(deviceDataFrame)
 # print(deviceDataFrame)
 # deviceDataFrame = pd.DataFrame(jdata)
-
