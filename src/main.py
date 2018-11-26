@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 import json
 from sklearn import model_selection,neural_network,metrics
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
+from sklearn.svm import SVC
 from pandas.io.json import json_normalize
 
 path = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/train1.csv"
@@ -61,18 +62,6 @@ for col in c.columns:
 for column in constant_columns:
     del c[column]
 
-
-
-# test.to_csv("output1.csv", sep='\t', encoding='utf-8')
-y = c['totals.transactionRevenue']
-del c['totals.transactionRevenue']
-X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
-neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
-neural_net.fit(X_train,y_train)
-y_pred = neural_net.predict(X_validation)
-print(metrics.accuracy_score(y_validation, y_pred))
-
-
 test = load_df(testPath)
 # print(test.columns)
 for column in test:
@@ -86,7 +75,18 @@ for column in test:
 for column in constant_columns:
     del test[column]
 
-y_test_pred = neural_net.predict(test)
+# test.to_csv("output1.csv", sep='\t', encoding='utf-8')
+y = c['totals.transactionRevenue']
+del c['totals.transactionRevenue']
+X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+
+#SVM
+print("supprt vector Machine")
+svm=SVC(kernel= 'sigmoid', gamma= 1e-1,C= 10,degree=2)
+svm.fit(X_train,y_train)
+y_pred=svm.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+y_test_pred=svm.predict(test)
 print(y_test_pred)
 total = y_test_pred.sum()
 print(total)
@@ -94,7 +94,10 @@ y_input=[]
 for i in y_test_pred:
     y_input.append(np.log(y_test_pred))
 print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
-X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
+print('\n')
+#Random Forest
+print("Random Forest")
+# X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
 random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
 random_forest.fit(X_train,y_train)
 y_pred=random_forest.predict(X_validation)
@@ -107,15 +110,41 @@ y_input=[]
 for i in y_test_pred:
     y_input.append(np.log(y_test_pred))
 print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+print('\n')
 
+#Neural network
+print("Neural Network")
+# X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
+neural_net.fit(X_train,y_train)
+y_pred = neural_net.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+y_test_pred = neural_net.predict(test)
+print(y_test_pred)
+total = y_test_pred.sum()
+print(total)
+y_input=[]
+for i in y_test_pred:
+    y_input.append(np.log(y_test_pred))
+print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+print('\n')
 
-def rme(y,total):
-    return np.sqrt(((y - total) ** 2).mean())
-
-
-
-
-
+#Adaboosting
+print("Adaboost")
+X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+adaboost=AdaBoostClassifier(n_estimators = 100, learning_rate= 0.5, algorithm='SAMME.R' ,random_state=1)
+adaboost.fit(X_train,y_train)
+y_pred = adaboost.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+y_test_pred = adaboost.predict(test)
+print(y_test_pred)
+total = y_test_pred.sum()
+print(total)
+y_input=[]
+for i in y_test_pred:
+    y_input.append(np.log(y_test_pred))
+print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+print('\n')
 
 
 
