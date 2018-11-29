@@ -2,10 +2,12 @@ import pandas as pd
 import numpy as np
 import json
 from sklearn import model_selection,neural_network,metrics
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
 from sklearn.svm import SVC
 from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
+from sklearn.model_selection import GridSearchCV
 
 path = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/src/train1.csv"
 
@@ -51,8 +53,6 @@ for column in c:
     if column not in columnList:
         normalizeColumn(c, column)
 
-# print("attributemap",attributeMap)
-# c.to_csv("output.csv", sep='\t', encoding='utf-8')
 
 #  find columns with constant values
 constant_columns = []
@@ -64,18 +64,18 @@ for col in c.columns:
 for column in constant_columns:
     del c[column]
 
-# test = load_df(testPath)
-# # print(test.columns)
-# for column in test:
-#     if column not in columnList:
-#         test[column] = test[column].astype('str')
-#
-# for column in test:
-#     if column not in columnList:
-#         normalizeColumn(test, column)
-#
-# for column in constant_columns:
-#     del test[column]
+test = load_df(testPath)
+# print(test.columns)
+for column in test:
+    if column not in columnList:
+        test[column] = test[column].astype('str')
+
+for column in test:
+    if column not in columnList:
+        normalizeColumn(test, column)
+
+for column in constant_columns:
+    del test[column]
 
 y = c['totals.transactionRevenue']
 y = pd.DataFrame(y)
@@ -182,6 +182,7 @@ plt.show()
 #     y_input.append(np.log(y_test_pred))
 # print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
 # print('\n')
+
 # #Random Forest
 # print("Random Forest")
 # # X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
@@ -199,22 +200,40 @@ plt.show()
 # print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
 # print('\n')
 #
-# #Neural network
-# print("Neural Network")
-# # X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
-# neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
-# neural_net.fit(X_train,y_train)
-# y_pred = neural_net.predict(X_validation)
-# print(metrics.accuracy_score(y_validation, y_pred))
-# y_test_pred = neural_net.predict(test)
-# print(y_test_pred)
-# total = y_test_pred.sum()
-# print(total)
-# y_input=[]
-# for i in y_test_pred:
-#     y_input.append(np.log(y_test_pred))
-# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
-# print('\n')
+#Neural network
+print("Neural Network")
+# X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
+neural_net.fit(X_train,y_train)
+y_pred = neural_net.predict(X_validation)
+print(metrics.accuracy_score(y_validation, y_pred))
+y_test_pred = neural_net.predict(test)
+print(y_test_pred)
+total = y_test_pred.sum()
+print(total)
+y_input=[]
+for i in y_test_pred:
+    y_input.append(np.log(y_test_pred))
+print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+print('\n')
+
+tuned_MLP_parameters = [{ 'hidden_layer_sizes': [(10,5,2), (20,10,7)],'activation': ['relu','tanh'],
+                     'alpha': [0.001,0.003,0.05,0.02,0.04],'learning_rate': ['constant','adaptive'],'max_iter':[100]}]
+
+clf = GridSearchCV(neural_network.MLPClassifier(), tuned_MLP_parameters, cv=5,scoring='accuracy')
+clf.fit(X_train, y_train)
+print("Best parameters set found on development set:")
+print()
+print(clf.best_params_)
+print()
+print("Detailed classification report:")
+print()
+y_true, y_pred = y_test_pred.ravel(), clf.predict(test)
+print(classification_report(y_true, y_pred))
+print("Accuracy Score:")
+print(accuracy_score(y_true, y_pred))
+print()
+
 #
 # #Adaboosting
 # print("Adaboost")
@@ -235,57 +254,3 @@ plt.show()
 #
 
 
-
-
-
-
-
-
-
-
-
-
-#  y is predicted revenue per user, y cap is total revenue of all users
-
-
-
-
-
-
-
-
-
-# c = pd.read_csv(path)
-# df = pd.DataFrame(c)
-# deviceDataFrame = df['device']
-# deviceDataFrame = pd.DataFrame(deviceDataFrame, columns=['device'])
-#
-# columns = ['browser', 'browserVersion', 'browserSize', 'operatingSystem',
-#                                              'operatingSystemVersion', 'isMobile', 'mobileDeviceBranding',
-#                                              'mobileDeviceModel', 'mobileInputSelector', 'mobileDeviceInfo',
-#                                              'mobileDeviceMarketingName', 'flashVersion', 'language',
-#                                              'screenColors', 'screenResolution', 'deviceCategory']
-#
-
-# df1 = pd.DataFrame(deviceDataFrame, columns=columns, dtype=np.str)
-# print(df1)
-# print(deviceDataFrame)
-# json_normalize(deviceDataFrame, columns)
-# pd.read_json(deviceDataFrame, orient='columns')
-
-# df2 = pd.DataFrame(df['device'], index=None, columns=['browser', 'browserVersion', 'browserSize', 'operatingSystem',
-#                                              'operatingSystemVersion', 'isMobile', 'mobileDeviceBranding',
-#                                              'mobileDeviceModel', 'mobileInputSelector', 'mobileDeviceInfo',
-#                                              'mobileDeviceMarketingName', 'flashVersion', 'language',
-#                                              'screenColors', 'screenResolution', 'deviceCategory'])
-#
-#
-# df1 = pd.DataFrame()
-# df1 = df1.append(df2)
-# print(df1)
-# stdf = df['device'].apply(json.loads)
-#
-# jdata = json.dumps(deviceDataFrame)
-# deviceDataFrame = pd.DataFrame(deviceDataFrame)
-# print(deviceDataFrame)
-# deviceDataFrame = pd.DataFrame(jdata)
