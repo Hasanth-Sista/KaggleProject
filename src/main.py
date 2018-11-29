@@ -87,25 +87,29 @@ n_classes = y.totalTR.unique()
 del c['totals.transactionRevenue']
 X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
 
-print(list(c))
+print(c.columns)
 
 import matplotlib.pyplot as plt
 
-deviceBrowserColumns = dict()
-
-for i in c['device.browser']:
-    if i not in deviceBrowserColumns.keys():
-        deviceBrowserColumns[i] = 1
+geoContinent = dict()
+for i in c['trafficSource.campaign']:
+    if i not in geoContinent.keys():
+        geoContinent[i] = 1
     else:
-        deviceBrowserColumns[i] += 1
+        geoContinent[i] += 1
 
-print(deviceBrowserColumns)
+x = list(geoContinent.keys())
+y = []
+xLabel = []
+for i in x:
+    for key, val in attributeMap.items():
+        if i == val:
+            xLabel.append(key)
+            y.append(geoContinent.get(i))
 
-x = deviceBrowserColumns.keys()
-y = deviceBrowserColumns.values()
-
-plt.scatter(x,y, alpha=0.5)
+plt.bar(xLabel, y, alpha=0.5)
 plt.show()
+
 
 #SVM
 # print("support vector Machine")
