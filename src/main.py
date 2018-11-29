@@ -2,16 +2,13 @@ import pandas as pd
 import numpy as np
 import json
 from sklearn import model_selection,neural_network,metrics
-from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
 from sklearn.svm import SVC
 from pandas.io.json import json_normalize
-import scikitplot as skplt
 import matplotlib.pyplot as plt
+path = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/train2.csv"
 
-path = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/src/train1.csv"
-
-testPath = "C:/Users/sista/PycharmProjects/KaggleProject/KaggleProject-MachineLearning/src/test1.csv"
+testPath = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/test1.csv"
 
 def load_df(csv_path=path, nrows=None):
     JSON_COLUMNS = ['device', 'geoNetwork', 'totals', 'trafficSource']
@@ -52,7 +49,7 @@ for column in c:
 for column in c:
     if column not in columnList:
         normalizeColumn(c, column)
-
+print("attributemap",attributeMap)
 # c.to_csv("output.csv", sep='\t', encoding='utf-8')
 
 #  find columns with constant values
@@ -65,72 +62,94 @@ for col in c.columns:
 for column in constant_columns:
     del c[column]
 
-test = load_df(testPath)
-# print(test.columns)
-for column in test:
-    if column not in columnList:
-        test[column] = test[column].astype('str')
-
-for column in test:
-    if column not in columnList:
-        normalizeColumn(test, column)
-
-for column in constant_columns:
-    del test[column]
+# test = load_df(testPath)
+# # print(test.columns)
+# for column in test:
+#     if column not in columnList:
+#         test[column] = test[column].astype('str')
+#
+# for column in test:
+#     if column not in columnList:
+#         normalizeColumn(test, column)
+#
+# for column in constant_columns:
+#     del test[column]
 
 # test.to_csv("output1.csv", sep='\t', encoding='utf-8')
 y = c['totals.transactionRevenue']
 y = pd.DataFrame(y)
 y.columns = ['totalTR']
 n_classes = y.totalTR.unique()
-
 del c['totals.transactionRevenue']
+
 X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+print("list goes here",list(c))
 
-print(list(c))
-
-import matplotlib.pyplot as plt
-
+#plot for device browsers
 deviceBrowserColumns = dict()
-
 for i in c['device.browser']:
     if i not in deviceBrowserColumns.keys():
         deviceBrowserColumns[i] = 1
     else:
         deviceBrowserColumns[i] += 1
-
-print(deviceBrowserColumns)
-
+print("columns",deviceBrowserColumns)
 x = deviceBrowserColumns.keys()
+columnNames=[]
+reversed_dictionary = dict(map(reversed, attributeMap.items()))
+for i in x:
+    columnNames.append((reversed_dictionary.get(i)))
 y = deviceBrowserColumns.values()
+plt.hist(y, alpha=1)
+plt.show()
 
-plt.scatter(x,y, alpha=0.5)
+#plot for geoNetwork
+geoNetworkColumns = dict()
+for i in c['geoNetwork.continent']:
+    if i not in geoNetworkColumns.keys():
+        geoNetworkColumns[i] = 1
+    else:
+        geoNetworkColumns[i] += 1
+x = geoNetworkColumns.keys()
+columnNames=[]
+reversed_dictionary = dict(map(reversed, attributeMap.items()))
+for i in x:
+    columnNames.append((reversed_dictionary.get(i)))
+y = geoNetworkColumns.values()
+plt.scatter(columnNames,y, alpha=1)
+plt.show()
+
+#plot for operatingsystem
+
+deviceOsColumns = dict()
+for i in c['device.operatingSystem']:
+    if i not in deviceOsColumns.keys():
+        deviceOsColumns[i] = 1
+    else:
+        deviceOsColumns[i] += 1
+x = deviceOsColumns.keys()
+columnNames=[]
+reversed_dictionary = dict(map(reversed, attributeMap.items()))
+for i in x:
+    columnNames.append((reversed_dictionary.get(i)))
+y = deviceOsColumns.values()
+plt.scatter(columnNames,y, alpha=1)
 plt.show()
 
 #SVM
-# print("support vector Machine")
+# print("supprt vector Machine")
 # svm=SVC(kernel= 'sigmoid', gamma= 1e-1,C= 10,degree=2)
 # svm.fit(X_train,y_train)
 # y_pred=svm.predict(X_validation)
 # print(metrics.accuracy_score(y_validation, y_pred))
 # y_test_pred=svm.predict(test)
-#
+# print(y_test_pred)
 # total = y_test_pred.sum()
 # print(total)
 # y_input=[]
-# y_squared_error = []
 # for i in y_test_pred:
 #     y_input.append(np.log(y_test_pred))
-# val = np.sqrt(((y_input - np.log(total)) ** 2).mean())
-# print(val)
+# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
 # print('\n')
-#
-# for i in range(len(y_test_pred)):
-#     y_squared_error.append(val)
-#
-# y_squared_error = np.array(y_squared_error)
-
-
 # #Random Forest
 # print("Random Forest")
 # # X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
@@ -181,7 +200,7 @@ plt.show()
 #     y_input.append(np.log(y_test_pred))
 # print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
 # print('\n')
-
+#
 
 
 
