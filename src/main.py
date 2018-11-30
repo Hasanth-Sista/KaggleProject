@@ -9,9 +9,9 @@ from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV
 
-path = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/train2.csv"
+path = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/train1.csv"
 
-testPath = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/test1.csv"
+testPath = "C:/Users/achan/PycharmProjects/KaggleProject-MachineLearning/test2.csv"
 
 def load_df(csv_path=path, nrows=None):
     JSON_COLUMNS = ['device', 'geoNetwork', 'totals', 'trafficSource']
@@ -31,13 +31,13 @@ def load_df(csv_path=path, nrows=None):
 c = load_df(path)
 # print(c.columns)
 attributeMap = dict()
-count = 0
+count = 0.0
 def normalizeColumn(data, attributes):
     global count
     for i in sorted(data[attributes].unique(), reverse=True):
         if i not in attributeMap:
             attributeMap[i] = count
-            count = count + 1
+            count = count + 1.0
     data[attributes] = data[attributes].map(attributeMap)
     return data
 
@@ -76,13 +76,16 @@ for column in test:
 
 for column in constant_columns:
     del test[column]
-c["totals.transactionRevenue"].fillna(1000, inplace=True)
-c["totals.transactionRevenue"].astype(np.float)
-y = c['totals.transactionRevenue'].astype(np.float)
-y = pd.DataFrame(y)
-y.columns = ['totalTR']
-n_classes = y.totalTR.unique()
-
+# print(c[c['totals.transactionRevenue'].isnull()])
+c["totals.transactionRevenue"].astype('float')
+c["totals.transactionRevenue"].fillna(100000, inplace=True)
+y=c['totals.transactionRevenue'].values
+print(y)
+# y = pd.DataFrame({"transactions": c['totals.transactionRevenue']},dtype=np.int64)
+# print(y)
+# n_classes = y.totalTR.unique()
+print(c)
+print(test)
 
 X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
 
@@ -210,14 +213,15 @@ del X_validation["totals.transactionRevenue"]
 neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
 neural_net.fit(X_train,y_train)
 y_pred = neural_net.predict(X_validation)
-y_pred[y_pred <=1000 ] = 0.0
+# y_pred[y_pred <=1000000 ] = 0.0
 result_val['predictedRevenue'] = y_pred
-total = result_val['transactionRevenue']
-print(total.values)
-print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, total)))
-#print(metrics.accuracy_score(y_validation, y_pred))
+total = result_val['transactionRevenue'].sum()
+print(total)
+# print(total.values)
+#print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, total)))
+print(metrics.accuracy_score(y_validation, y_pred))
 y_test_pred = neural_net.predict(test)
-y_test_pred[y_test_pred <= 1000] = 0
+# y_test_pred[y_test_pred <= 1000000] = 0
 # print(y_test_pred)
 # total = y_test_pred.sum()
 # print(total)
@@ -229,7 +233,7 @@ y_test_pred[y_test_pred <= 1000] = 0
 
 result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
 result['predictedRevenue'] = y_test_pred
-result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index().o
 result.columns = ["fullVisitorId", "predictedLogRevenue"]
 result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
 result.to_csv('output',index=True)
