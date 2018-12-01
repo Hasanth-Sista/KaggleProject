@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import gc
 from sklearn import model_selection,neural_network,metrics
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
@@ -43,7 +44,7 @@ def normalizeColumn(data, attributes):
 
 # fullVisitorId and sessionId are object type
 
-columnList = ['date', 'fullVisitorId', 'sessionId', 'visitId', 'visitNumber', 'visitStartTime', 'totals.transactionRevenue']
+columnList = ['date', 'fullVisitorId', 'sessionId', 'visitId', 'visitNumber', 'visitStartTime']
 
 for column in c:
     if column not in columnList:
@@ -77,17 +78,20 @@ for column in test:
 for column in constant_columns:
     del test[column]
 # print(c[c['totals.transactionRevenue'].isnull()])
-c["totals.transactionRevenue"].astype('float')
-c["totals.transactionRevenue"].fillna(100000, inplace=True)
+# c["totals.transactionRevenue"].astype('float')
+# c["totals.transactionRevenue"].fillna(100000, inplace=True)
 y=c['totals.transactionRevenue'].values
-print(y)
+
 # y = pd.DataFrame({"transactions": c['totals.transactionRevenue']},dtype=np.int64)
 # print(y)
 # n_classes = y.totalTR.unique()
-print(c)
-print(test)
 
+#dividing the data for training and validation
 X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
+result_val = pd.DataFrame({"fullVisitorId":X_validation['fullVisitorId'], 'transactionRevenue': X_validation["totals.transactionRevenue"]})
+del X_train['totals.transactionRevenue']
+del X_validation["totals.transactionRevenue"]
+
 
 # print(c.columns)
 
@@ -171,108 +175,166 @@ plt.plot(y, columnNames, alpha=1)
 plt.show()
 
 
-#SVM
-# print("supprt vector Machine")
+# #Neural network
+# print("Neural Network")
+# #build the neural network model and fit the model
+# neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
+# neural_net.fit(X_train,y_train)
+#
+# #predict the model
+# y_pred = neural_net.predict(X_validation)
+# result_val['predictedRevenue'] = y_pred
+# total = result_val['transactionRevenue'].sum()
+# result_val['total']=result_val['transactionRevenue']
+# result_val['total'] = total
+#
+# #RME value
+# print('RMSE value')
+# print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+#
+# #classification Report
+# print('classification report')
+# print(classification_report(y_validation, y_pred))
+#
+# #accuracy of the model
+# print('accuracy')
+# print(metrics.accuracy_score(y_validation, y_pred))
+#
+# #predict the test and save it to the csv file
+# y_test_pred = neural_net.predict(test)
+# result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
+# result['predictedRevenue'] = y_test_pred
+# result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+# result.columns = ["fullVisitorId", "predictedLogRevenue"]
+# result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
+# min = result["predictedLogRevenue"].min()
+# result["predictedLogRevenue"] -= min
+# result.to_csv('output.csv',index=True)
+# print(result.head(6))
+# print('\n')
+# del result
+# del total
+# del neural_net
+# gc.collect()
+
+# #SVM
+# print("SVM")
+# #build the neural network model and fit the model
 # svm=SVC(kernel= 'sigmoid', gamma= 1e-1,C= 10,degree=2)
 # svm.fit(X_train,y_train)
-# y_pred=svm.predict(X_validation)
+#
+# #predict the model
+# y_pred = svm.predict(X_validation)
+# result_val['predictedRevenue'] = y_pred
+# total = result_val['transactionRevenue'].sum()
+# result_val['total']=result_val['transactionRevenue']
+# result_val['total'] = total
+#
+# #RME value
+# print('RMSE value')
+# print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+#
+# #classification Report
+# print('classification report')
+# print(classification_report(y_validation, y_pred))
+#
+# #accuracy of the model
+# print('accuracy')
 # print(metrics.accuracy_score(y_validation, y_pred))
-# y_test_pred=svm.predict(test)
-# print(y_test_pred)
-# total = y_test_pred.sum()
-# print(total)
-# y_input=[]
-# for i in y_test_pred:
-#     y_input.append(np.log(y_test_pred))
-# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
+#
+# #predict the test and save it to the csv file
+# y_test_pred = svm.predict(test)
+# result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
+# result['predictedRevenue'] = y_test_pred
+# result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+# result.columns = ["fullVisitorId", "predictedLogRevenue"]
+# result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
+# min = result["predictedLogRevenue"].min()
+# result["predictedLogRevenue"] -= min
+# result.to_csv('output1.csv', index=True)
+# print(result.head(6))
 # print('\n')
 
-# #Random Forest
-# print("Random Forest")
-# # X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.25, random_state=0)
-# random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
-# random_forest.fit(X_train,y_train)
-# y_pred=random_forest.predict(X_validation)
-# print(metrics.accuracy_score(y_validation, y_pred))
-# y_test_pred = random_forest.predict(test)
-# print(y_test_pred)
-# total = y_test_pred.sum()
-# print(total)
-# y_input=[]
-# for i in y_test_pred:
-#     y_input.append(np.log(y_test_pred))
-# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
-# print('\n')
-#
-#Neural network
-print("Neural Network")
-# X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
-result_val = pd.DataFrame({"fullVisitorId":X_validation['fullVisitorId'], 'transactionRevenue': X_validation["totals.transactionRevenue"]})
-del X_train['totals.transactionRevenue']
-del X_validation["totals.transactionRevenue"]
-neural_net = neural_network.MLPClassifier(hidden_layer_sizes=(5,),activation="relu",alpha=0.0001)
-neural_net.fit(X_train,y_train)
-y_pred = neural_net.predict(X_validation)
-# y_pred[y_pred <=1000000 ] = 0.0
+
+#Random Forest
+print("Random Forest")
+#build the neural network model and fit the model
+random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
+
+random_forest.fit(X_train,y_train)
+
+#predict the model
+y_pred = random_forest.predict(X_validation)
 result_val['predictedRevenue'] = y_pred
 total = result_val['transactionRevenue'].sum()
-print(total)
-# print(total.values)
-#print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, total)))
-print(metrics.accuracy_score(y_validation, y_pred))
-y_test_pred = neural_net.predict(test)
-# y_test_pred[y_test_pred <= 1000000] = 0
-# print(y_test_pred)
-# total = y_test_pred.sum()
-# print(total)
-# y_input=[]
-# for i in y_test_pred:
-#     y_input.append(np.log(y_test_pred))
-# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
-# print('\n')
+result_val['total']=result_val['transactionRevenue']
+result_val['total'] = total
 
+#RME value
+print('RMSE value')
+print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+
+#classification Report
+print('classification report')
+print(classification_report(y_validation, y_pred))
+
+#accuracy of the model
+print('accuracy')
+print(metrics.accuracy_score(y_validation, y_pred))
+
+#predict the test and save it to the csv file
+y_test_pred = random_forest.predict(test)
 result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
 result['predictedRevenue'] = y_test_pred
-result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index().o
+result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
 result.columns = ["fullVisitorId", "predictedLogRevenue"]
 result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
-result.to_csv('output',index=True)
+min = result["predictedLogRevenue"].min()
+result["predictedLogRevenue"] -= min
+result.to_csv('output1.csv', index=True)
 print(result.head(6))
+print('\n')
 
-tuned_MLP_parameters = [{ 'hidden_layer_sizes': [(10,5,2), (20,10,7)],'activation': ['relu','tanh'],
-                     'alpha': [0.001,0.003,0.05,0.02,0.04],'learning_rate': ['constant','adaptive'],'max_iter':[100]}]
 
-clf = GridSearchCV(neural_network.MLPClassifier(), tuned_MLP_parameters, cv=5,scoring='accuracy')
-clf.fit(X_train, y_train)
-print("Best parameters set found on development set:")
-print()
-print(clf.best_params_)
-print()
-print("Detailed classification report:")
-print()
-y_true, y_pred = y_test_pred.ravel(), clf.predict(test)
-print(classification_report(y_true, y_pred))
-print("Accuracy Score:")
-print(accuracy_score(y_true, y_pred))
-print()
+#Adaboosting
+print("Adaboosting")
+#build the neural network model and fit the model
+adaboost=AdaBoostClassifier(n_estimators = 100, learning_rate= 0.5, algorithm='SAMME.R' ,random_state=1)
 
-#
-# #Adaboosting
-# print("Adaboost")
-# X_train,X_validation,y_train,y_validation=model_selection.train_test_split(c, y, test_size=0.20, random_state=0)
-# adaboost=AdaBoostClassifier(n_estimators = 100, learning_rate= 0.5, algorithm='SAMME.R' ,random_state=1)
-# adaboost.fit(X_train,y_train)
-# y_pred = adaboost.predict(X_validation)
-# print(metrics.accuracy_score(y_validation, y_pred))
-# y_test_pred = adaboost.predict(test)
-# print(y_test_pred)
-# total = y_test_pred.sum()
-# print(total)
-# y_input=[]
-# for i in y_test_pred:
-#     y_input.append(np.log(y_test_pred))
-# print(np.sqrt(((y_input - np.log(total)) ** 2).mean()))
-# print('\n')
-#
+adaboost.fit(X_train,y_train)
+
+#predict the model
+y_pred = adaboost.predict(X_validation)
+result_val['predictedRevenue'] = y_pred
+total = result_val['transactionRevenue'].sum()
+result_val['total']=result_val['transactionRevenue']
+result_val['total'] = total
+
+#RME value
+print('RMSE value')
+print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+
+#classification Report
+print('classification report')
+print(classification_report(y_validation, y_pred))
+
+#accuracy of the model
+print('accuracy')
+print(metrics.accuracy_score(y_validation, y_pred))
+
+#predict the test and save it to the csv file
+y_test_pred = adaboost.predict(test)
+result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
+result['predictedRevenue'] = y_test_pred
+result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+result.columns = ["fullVisitorId", "predictedLogRevenue"]
+result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
+min = result["predictedLogRevenue"].min()
+result["predictedLogRevenue"] -= min
+result.to_csv('output1.csv', index=True)
+print(result.head(6))
+print('\n')
+
+
 
 
