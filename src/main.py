@@ -233,7 +233,7 @@ y_test_pred = neural_net.predict(test)
 
 result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
 result['predictedRevenue'] = y_test_pred
-result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index().o
+result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
 result.columns = ["fullVisitorId", "predictedLogRevenue"]
 result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
 result.to_csv('output',index=True)
