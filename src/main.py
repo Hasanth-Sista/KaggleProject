@@ -4,7 +4,7 @@ import json
 import gc
 from sklearn import model_selection,neural_network,metrics
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier, BaggingClassifier
 from sklearn.svm import SVC
 from pandas.io.json import json_normalize
 import matplotlib.pyplot as plt
@@ -31,6 +31,9 @@ def load_df(csv_path=path, nrows=None):
 
 c = load_df(path)
 # print(c.columns)
+
+# print(c.describe())
+
 attributeMap = dict()
 count = 0.0
 def normalizeColumn(data, attributes):
@@ -64,6 +67,8 @@ for col in c.columns:
 # remove columns with constant values
 for column in constant_columns:
     del c[column]
+
+# print(c.describe())
 
 test = load_df(testPath)
 # print(test.columns)
@@ -256,44 +261,44 @@ plt.show()
 # print('\n')
 
 
-#Random Forest
-print("Random Forest")
-#build the neural network model and fit the model
-random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
-
-random_forest.fit(X_train,y_train)
-
-#predict the model
-y_pred = random_forest.predict(X_validation)
-result_val['predictedRevenue'] = y_pred
-total = result_val['transactionRevenue'].sum()
-result_val['total']=result_val['transactionRevenue']
-result_val['total'] = total
-
-#RME value
-print('RMSE value')
-print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
-
-#classification Report
-print('classification report')
-print(classification_report(y_validation, y_pred))
-
-#accuracy of the model
-print('accuracy')
-print(metrics.accuracy_score(y_validation, y_pred))
-
-#predict the test and save it to the csv file
-y_test_pred = random_forest.predict(test)
-result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
-result['predictedRevenue'] = y_test_pred
-result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
-result.columns = ["fullVisitorId", "predictedLogRevenue"]
-result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
-min = result["predictedLogRevenue"].min()
-result["predictedLogRevenue"] -= min
-result.to_csv('output1.csv', index=True)
-print(result.head(6))
-print('\n')
+# #Random Forest
+# print("Random Forest")
+# #build the neural network model and fit the model
+# random_forest=RandomForestClassifier(n_estimators=10,criterion= 'gini', max_depth= 3, max_features= 'sqrt')
+#
+# random_forest.fit(X_train,y_train)
+#
+# #predict the model
+# y_pred = random_forest.predict(X_validation)
+# result_val['predictedRevenue'] = y_pred
+# total = result_val['transactionRevenue'].sum()
+# result_val['total']=result_val['transactionRevenue']
+# result_val['total'] = total
+#
+# #RME value
+# print('RMSE value')
+# print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+#
+# #classification Report
+# print('classification report')
+# print(classification_report(y_validation, y_pred))
+#
+# #accuracy of the model
+# print('accuracy')
+# print(metrics.accuracy_score(y_validation, y_pred))
+#
+# #predict the test and save it to the csv file
+# y_test_pred = random_forest.predict(test)
+# result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
+# result['predictedRevenue'] = y_test_pred
+# result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+# result.columns = ["fullVisitorId", "predictedLogRevenue"]
+# result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
+# min = result["predictedLogRevenue"].min()
+# result["predictedLogRevenue"] -= min
+# result.to_csv('output1.csv', index=True)
+# print(result.head(6))
+# print('\n')
 
 
 #Adaboosting
@@ -336,5 +341,43 @@ print(result.head(6))
 print('\n')
 
 
+# #Bagging
+#
+# print("Bagging")
+# #build the neural network model and fit the model
+# bg=BaggingClassifier(n_estimators=10, bootstrap=False, warm_start=False)
+# bg.fit(X_train,y_train)
+#
+# #predict the model
+# y_pred = bg.predict(X_validation)
+# result_val['predictedRevenue'] = y_pred
+# total = result_val['transactionRevenue'].sum()
+# result_val['total']=result_val['transactionRevenue']
+# result_val['total'] = total
+#
+# #RME value
+# print('RMSE value')
+# print(np.sqrt(metrics.mean_squared_error(np.log(result_val['predictedRevenue']).values, np.log(result_val['transactionRevenue']) )))
+#
+# #classification Report
+# print('classification report')
+# print(classification_report(y_validation, y_pred))
+#
+# #accuracy of the model
+# print('accuracy')
+# print(metrics.accuracy_score(y_validation, y_pred))
+#
+# #predict the test and save it to the csv file
+# y_test_pred = bg.predict(test)
+# result = pd.DataFrame({"fullVisitorId":test['fullVisitorId']})
+# result['predictedRevenue'] = y_test_pred
+# result = result.groupby('fullVisitorId')['predictedRevenue'].sum().reset_index()
+# result.columns = ["fullVisitorId", "predictedLogRevenue"]
+# result["predictedLogRevenue"] = np.log1p(result["predictedLogRevenue"])
+# min = result["predictedLogRevenue"].min()
+# result["predictedLogRevenue"] -= min
+# result.to_csv('output1.csv', index=True)
+# print(result.head(6))
+# print('\n')
 
 
